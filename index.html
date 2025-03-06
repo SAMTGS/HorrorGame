@@ -26,43 +26,50 @@
         }
         .board {
             display: grid;
-            grid-template-columns: repeat(6, 60px);
-            grid-template-rows: repeat(6, 60px);
+            grid-template-columns: repeat(6, 50px);
+            grid-template-rows: repeat(6, 50px);
             gap: 5px;
             background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
+            padding: 10px;
             border-radius: 10px;
         }
         .cell {
+            width: 50px;
+            height: 50px;
+            font-size: 1.8rem;
+            text-align: center;
+            line-height: 50px;
+            background: #333;
+            border-radius: 5px;
+        }
+        .player { background: yellow; }
+        .wall { background: darkred; }
+        .ghost { background: purple; }
+        .exit { background: green; }
+        #timer { font-size: 1.5rem; margin: 10px 0; }
+        #message { font-size: 1.8rem; color: red; margin-top: 10px; }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
             width: 60px;
             height: 60px;
             font-size: 2rem;
             text-align: center;
-            line-height: 60px;
-            background: #333;
-            border-radius: 5px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 5px red;
         }
-        .player {
-            background: yellow;
-        }
-        .wall {
-            background: darkred;
-        }
-        .ghost {
-            background: purple;
-        }
-        .exit {
-            background: green;
-        }
-        #timer {
-            font-size: 1.5rem;
-            margin: 10px 0;
-        }
-        #message {
-            font-size: 1.8rem;
-            color: red;
-            margin-top: 10px;
-        }
+        .btn:active { background: gray; }
     </style>
 </head>
 <body>
@@ -73,9 +80,17 @@
         <p id="message"></p>
     </div>
 
+    <div class="controls">
+        <button class="btn" onclick="move(0, -1)">🔼</button>
+        <div class="btn-row">
+            <button class="btn" onclick="move(-1, 0)">◀️</button>
+            <button class="btn" onclick="move(1, 0)">▶️</button>
+        </div>
+        <button class="btn" onclick="move(0, 1)">🔽</button>
+    </div>
+
     <script>
         const boardSize = 6;
-        let board = [];
         let player = { x: 0, y: 0 };
         let exit = { x: 5, y: 5 };
         let ghosts = [{ x: 2, y: 2 }, { x: 4, y: 4 }];
@@ -114,7 +129,7 @@
             }
         }
 
-        function movePlayer(dx, dy) {
+        function move(dx, dy) {
             if (gameOver) return;
 
             let newX = player.x + dx;
@@ -184,10 +199,10 @@
         }
 
         document.addEventListener("keydown", function(event) {
-            if (event.key === "ArrowUp" || event.key === "w") movePlayer(0, -1);
-            if (event.key === "ArrowDown" || event.key === "s") movePlayer(0, 1);
-            if (event.key === "ArrowLeft" || event.key === "a") movePlayer(-1, 0);
-            if (event.key === "ArrowRight" || event.key === "d") movePlayer(1, 0);
+            if (event.key === "ArrowUp" || event.key === "w") move(0, -1);
+            if (event.key === "ArrowDown" || event.key === "s") move(0, 1);
+            if (event.key === "ArrowLeft" || event.key === "a") move(-1, 0);
+            if (event.key === "ArrowRight" || event.key === "d") move(1, 0);
         });
 
         setInterval(moveGhosts, 1000);
