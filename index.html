@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Escape Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        h1 {
+            font-size: 2rem;
+            text-shadow: 0 0 10px red;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-template-rows: repeat(6, 60px);
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            text-align: center;
+            line-height: 60px;
+            background: #333;
+            border-radius: 5px;
+        }
+        .player {
+            background: yellow;
+        }
+        .wall {
+            background: darkred;
+        }
+        .ghost {
+            background: purple;
+        }
+        .exit {
+            background: green;
+        }
+        #timer {
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        #message {
+            font-size: 1.8rem;
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Escape the Haunted Maze 👻</h1>
+    <div id="game-container">
+        <div id="timer">Time Left: <span id="time">20</span>s</div>
+        <div class="board" id="board"></div>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const boardSize = 6;
+        let board = [];
+        let player = { x: 0, y: 0 };
+        let exit = { x: 5, y: 5 };
+        let ghosts = [{ x: 2, y: 2 }, { x: 4, y: 4 }];
+        let walls = [
+            { x: 1, y: 1 }, { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 4, y: 1 },
+            { x: 1, y: 3 }, { x: 3, y: 3 }, { x: 5, y: 3 },
+            { x: 2, y: 5 }, { x: 4, y: 5 }
+        ];
+        let timeLeft = 20;
+        let gameOver = false;
+
+        function createBoard() {
+            const boardElement = document.getElementById("board");
+            boardElement.innerHTML = "";
+            for (let y = 0; y < boardSize; y++) {
+                for (let x = 0; x < boardSize; x++) {
+                    let cell = document.createElement("div");
+                    cell.classList.add("cell");
+
+                    if (x === player.x && y === player.y) {
+                        cell.textContent = "😨";
+                        cell.classList.add("player");
+                    } else if (x === exit.x && y === exit.y) {
+                        cell.textContent = "🚪";
+                        cell.classList.add("exit");
+                    } else if (walls.some(w => w.x === x && w.y === y)) {
+                        cell.textContent = "🧱";
+                        cell.classList.add("wall");
+                    } else if (ghosts.some(g => g.x === x && g.y === y)) {
+                        cell.textContent = "👻";
+                        cell.classList.add("ghost");
+                    }
+
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function movePlayer(dx, dy) {
+            if (gameOver) return;
+
+            let newX = player.x + dx;
+            let newY = player.y + dy;
+
+            if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
+                if (!walls.some(w => w.x === newX && w.y === newY)) {
+                    player.x = newX;
+                    player.y = newY;
+                }
+            }
+
+            if (player.x === exit.x && player.y === exit.y) {
+                document.getElementById("message").textContent = "🎉 You Escaped!";
+                gameOver = true;
+            }
+
+            if (ghosts.some(g => g.x === player.x && g.y === player.y)) {
+                document.getElementById("message").textContent = "💀 A ghost caught you!";
+                gameOver = true;
+            }
+
+            createBoard();
+        }
+
+        function moveGhosts() {
+            if (gameOver) return;
+
+            ghosts.forEach(ghost => {
+                let directions = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+                let randomDir = directions[Math.floor(Math.random() * directions.length)];
+                let newX = ghost.x + randomDir.x;
+                let newY = ghost.y + randomDir.y;
+
+                if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
+                    if (!walls.some(w => w.x === newX && w.y === newY)) {
+                        ghost.x = newX;
+                        ghost.y = newY;
+                    }
+                }
+            });
+
+            if (ghosts.some(g => g.x === player.x && g.y === player.y)) {
+                document.getElementById("message").textContent = "💀 A ghost caught you!";
+                gameOver = true;
+            }
+
+            createBoard();
+        }
+
+        function startTimer() {
+            let timerInterval = setInterval(() => {
+                if (gameOver) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+
+                timeLeft--;
+                document.getElementById("time").textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById("message").textContent = "💀 You ran out of time!";
+                    gameOver = true;
+                }
+            }, 1000);
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowUp" || event.key === "w") movePlayer(0, -1);
+            if (event.key === "ArrowDown" || event.key === "s") movePlayer(0, 1);
+            if (event.key === "ArrowLeft" || event.key === "a") movePlayer(-1, 0);
+            if (event.key === "ArrowRight" || event.key === "d") movePlayer(1, 0);
+        });
+
+        setInterval(moveGhosts, 1000);
+        startTimer();
+        createBoard();
+    </script>
+</body>
+</html>
